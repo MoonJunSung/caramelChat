@@ -8,13 +8,11 @@ accessible field net/minecraft/client/gui/components/EditBox cursorPos I
 accessible field net/minecraft/client/gui/components/EditBox highlightPos I
 accessible field net/minecraft/client/gui/components/EditBox responder Ljava/util/function/Consumer;
 
-accessible method net/minecraft/client/gui/components/AbstractTextAreaWidget getInnerLeft ()I
-accessible method net/minecraft/client/gui/components/AbstractTextAreaWidget getInnerTop ()I
+accessible method net/minecraft/client/gui/components/AbstractScrollWidget innerPadding ()I
 
 accessible field net/minecraft/client/gui/components/MultiLineEditBox font Lnet/minecraft/client/gui/Font;
 accessible field net/minecraft/client/gui/components/MultiLineEditBox textField Lnet/minecraft/client/gui/components/MultilineTextField;
 accessible method net/minecraft/client/gui/components/MultilineTextField reflowDisplayLines ()V
-accessible method net/minecraft/client/gui/components/MultilineTextField overflowsLineLimit (Ljava/lang/String;)Z
 accessible field net/minecraft/client/gui/components/MultilineTextField displayLines Ljava/util/List;
 accessible field net/minecraft/client/gui/components/MultilineTextField value Ljava/lang/String;
 accessible field net/minecraft/client/gui/components/MultilineTextField cursor I
@@ -41,4 +39,4 @@ accessible method net/minecraft/client/gui/screens/inventory/CreativeModeInvento
 
 accessible field net/minecraft/client/gui/screens/Screen font Lnet/minecraft/client/gui/Font;
 
-accessible method net/minecraft/client/KeyboardHandler charTyped (JLnet/minecraft/client/input/CharacterEvent;)V
+accessible method net/minecraft/client/KeyboardHandler charTyped (JII)V

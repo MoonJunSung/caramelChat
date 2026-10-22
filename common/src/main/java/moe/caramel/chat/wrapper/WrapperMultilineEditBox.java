@@ -36,7 +36,7 @@ public final class WrapperMultilineEditBox extends AbstractIMEWrapper {
 
     @Override
     public boolean blockTyping() {
-        return wrapped.textField.overflowsLineLimit("");
+        return wrapped.textField.hasCharacterLimit() && this.origin.length() >= wrapped.textField.characterLimit();
     }
 
     @Override
@@ -82,8 +82,8 @@ public final class WrapperMultilineEditBox extends AbstractIMEWrapper {
             yHeight = index + 1;
         }
 
-        final float x = wrapped.getInnerLeft() + (xWidth);
-        final float y = wrapped.getInnerTop() + (yHeight * wrapped.font.lineHeight);
+        final float x = (wrapped.getX() + wrapped.innerPadding()) + (xWidth);
+        final float y = (wrapped.getY() + wrapped.innerPadding()) + (yHeight * wrapped.font.lineHeight);
         return new Rect(x, y, wrapped.getWidth(), wrapped.getHeight());
     }
 }

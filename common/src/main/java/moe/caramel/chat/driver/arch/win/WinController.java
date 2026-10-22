@@ -31,7 +31,7 @@ public final class WinController implements IController {
         this.driver = Native.load(Main.copyLibrary("libwincocoainput.dll"), Driver_Win.class);
         this.driver.initialize(
             // Window Id
-            GLFWNativeWin32.glfwGetWin32Window(Minecraft.getInstance().getWindow().handle()),
+            GLFWNativeWin32.glfwGetWin32Window(Minecraft.getInstance().getWindow().getWindow()),
             // Pre Edit Callback
             (str, cursor, length) -> {
                 if (focused != null) {

@@ -68,27 +68,26 @@ public final class MixinMultiLineEditBox {
         method = "renderContents",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)V",
+            target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)I",
             ordinal = 1
         )
     )
-    private void renderCaretMiddle(final GuiGraphics instance, final Font font, final String text, final int x, final int y, final int color, final boolean dropShadow, final Operation<Integer> original) {
-        this.renderCaretEnd(instance, font, text, x, y, color, dropShadow, original);
+    private int renderCaretMiddle(final GuiGraphics instance, final Font font, final String text, final int x, final int y, final int color, final Operation<Integer> original) {
+        return this.renderCaretEnd(instance, font, text, x, y, color, original);
     }
 
     @WrapOperation(
         method = "renderContents",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)V",
+            target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)I",
             ordinal = 2
         )
     )
-    private void renderCaretEnd(final GuiGraphics instance, final Font font, final String text, final int x, final int y, final int color, final boolean dropShadow, final Operation<Integer> original) {
+    private int renderCaretEnd(final GuiGraphics instance, final Font font, final String text, final int x, final int y, final int color, final Operation<Integer> original) {
         // Check IME Status
         if (text.isEmpty() || caramelChat$wrapper.getStatus() == AbstractIMEWrapper.InputStatus.NONE) {
-            original.call(instance, font, text, x, y, color, dropShadow);
-            return;
+            return original.call(instance, font, text, x, y, color);
         }
 
         // Render Caret
@@ -100,8 +99,7 @@ public final class MixinMultiLineEditBox {
             final int localEnd = Math.min(text.length(), secondStart - this.caramelChat$viewBeginPos);
 
             if (localStart >= localEnd) {
-                original.call(instance, font, text, x, y, color, dropShadow);
-                return;
+                return original.call(instance, font, text, x, y, color);
             }
 
             final String before = text.substring(0, localStart);
@@ -109,12 +107,11 @@ public final class MixinMultiLineEditBox {
             final String after = text.substring(localEnd);
 
             final String result = before + ChatFormatting.UNDERLINE + underlined + ChatFormatting.RESET + after;
-            original.call(instance, font, result, x, y, color, dropShadow);
-            return;
+            return original.call(instance, font, result, x, y, color);
         }
 
         // No need to render caret
-        original.call(instance, font, text, x, y, color, dropShadow);
+        return original.call(instance, font, text, x, y, color);
     }
 
     // ================================ (IME)

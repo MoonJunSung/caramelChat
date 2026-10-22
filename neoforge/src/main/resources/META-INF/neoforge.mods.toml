@@ -6,6 +6,9 @@
 
 # The license for you mod. This is mandatory metadata and allows for easier comprehension of your redistributive properties.
 # Review your options at https://choosealicense.com/. All rights reserved is the default copyright stance, and is thus the default here.
+modLoader="javafml" #mandatory
+loaderVersion="[4,)" #mandatory
+
 license="GNU LGPL 3.0"
 
 # A URL to refer people to when problems occur with this mod
@@ -58,14 +61,14 @@ config="caramelchat.mixins.json"
 [[dependencies.caramelchat]]
     modId="neoforge"
     type="required"
-    versionRange="[21.9,)"
+    versionRange="[21.1,21.2)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.caramelchat]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21.9,)"
+    versionRange="[1.21.1]"
     ordering="NONE"
     side="CLIENT"
 

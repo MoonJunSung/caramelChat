@@ -1,5 +1,7 @@
 package moe.caramel.chat.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import moe.caramel.chat.controller.EditBoxController;
 import moe.caramel.chat.wrapper.AbstractIMEWrapper;
 import moe.caramel.chat.wrapper.WrapperEditBox;
@@ -7,7 +9,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -17,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 /**
@@ -31,7 +33,6 @@ public abstract class MixinEditBox implements EditBoxController {
     @Shadow public int highlightPos;
     @Shadow public int cursorPos;
     @Shadow public String value;
-    @Shadow @Final private List<EditBox.TextFormatter> formatters;
 
     @Redirect(
         method = "<init>(Lnet/minecraft/client/gui/Font;IIIILnet/minecraft/client/gui/components/EditBox;Lnet/minecraft/network/chat/Component;)V",
@@ -50,7 +51,6 @@ public abstract class MixinEditBox implements EditBoxController {
         if (this.caramelChat$wrapper == null) {
             this.caramelChat$wrapper = new WrapperEditBox((EditBox) (Object) this);
         }
-        this.formatters.add(this.caramelChat$caretFormatter());
     }
 
     @Override
@@ -60,45 +60,54 @@ public abstract class MixinEditBox implements EditBoxController {
 
     // ================================ (Formatter)
 
+    @WrapOperation(
+        method = "renderWidget",
+        at = @At(
+            value = "INVOKE",
+            target = "Ljava/util/function/BiFunction;apply(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+        )
+    )
+    private Object applyFormatter(final BiFunction<String, Integer, FormattedCharSequence> formatter, final Object text, final Object firstPos, final Operation<Object> original) {
+        final FormattedCharSequence caret = this.caramelChat$caretFormatter((String) text, (Integer) firstPos);
+        return (caret != null) ? caret : original.call(formatter, text, firstPos);
+    }
+
     @Unique
-    private EditBox.TextFormatter caramelChat$caretFormatter() {
+    private FormattedCharSequence caramelChat$caretFormatter(final String original, final int firstPos) {
         // Set caret renderer
-        return ((original, firstPos) -> {
-            /* Original */
-            if (caramelChat$wrapper.getStatus() == AbstractIMEWrapper.InputStatus.NONE) {
+        /* Original */
+        if (caramelChat$wrapper == null || caramelChat$wrapper.getStatus() == AbstractIMEWrapper.InputStatus.NONE) {
+            return null;
+        }
+        /* Warning */
+        else if (caramelChat$wrapper.blockTyping()) {
+            return FormattedCharSequence.forward(original, Style.EMPTY.withColor(ChatFormatting.RED));
+        }
+        /* Custom */
+        else {
+            // Check Position
+            // Empty
+            // FirstPos ex. [ ABCD|EFG}(INPUT)HIJK ]
+            // LastPos ex. [ ABCDEFG(INPUT)HI|JK} ]
+            final int lastPos = (firstPos + original.length()); // firstPos ~ lastPos
+            if (lastPos <= caramelChat$wrapper.getFirstEndPos() || caramelChat$wrapper.getSecondStartPos() < firstPos) {
                 return null;
             }
-            /* Warning */
-            else if (caramelChat$wrapper.blockTyping()) {
-                return FormattedCharSequence.forward(original, Style.EMPTY.withColor(ChatFormatting.RED));
-            }
-            /* Custom */
-            else {
-                // Check Position
-                // Empty
-                // FirstPos ex. [ ABCD|EFG}(INPUT)HIJK ]
-                // LastPos ex. [ ABCDEFG(INPUT)HI|JK} ]
-                final int lastPos = (firstPos + original.length()); // firstPos ~ lastPos
-                if (lastPos <= caramelChat$wrapper.getFirstEndPos() || caramelChat$wrapper.getSecondStartPos() < firstPos) {
-                    return null;
-                }
 
-                // Process
-                final int firstLen = (caramelChat$wrapper.getFirstEndPos() - firstPos);
-                final int previewLen = (caramelChat$wrapper.getSecondStartPos() - caramelChat$wrapper.getFirstEndPos());
-                final int inputEndPoint = Math.min(original.length(), (firstLen + previewLen));
+            // Process
+            final int firstLen = Math.max(0, caramelChat$wrapper.getFirstEndPos() - firstPos);
+            final int inputEndPoint = Math.min(original.length(), (caramelChat$wrapper.getSecondStartPos() - firstPos));
 
-                final List<FormattedCharSequence> list = new ArrayList<>();
-                final String first = original.substring(0, firstLen);
-                final String input = original.substring(firstLen, inputEndPoint);
-                final String second = original.substring(inputEndPoint);
-                list.add(FormattedCharSequence.forward(first, Style.EMPTY));
-                list.add(FormattedCharSequence.forward(input, Style.EMPTY.withUnderlined(true)));
-                list.add(FormattedCharSequence.forward(second, Style.EMPTY));
+            final List<FormattedCharSequence> list = new ArrayList<>();
+            final String first = original.substring(0, firstLen);
+            final String input = original.substring(firstLen, inputEndPoint);
+            final String second = original.substring(inputEndPoint);
+            list.add(FormattedCharSequence.forward(first, Style.EMPTY));
+            list.add(FormattedCharSequence.forward(input, Style.EMPTY.withUnderlined(true)));
+            list.add(FormattedCharSequence.forward(second, Style.EMPTY));
 
-                return FormattedCharSequence.composite(list);
-            }
-        });
+            return FormattedCharSequence.composite(list);
+        }
     }
 
     // ================================ (IME)

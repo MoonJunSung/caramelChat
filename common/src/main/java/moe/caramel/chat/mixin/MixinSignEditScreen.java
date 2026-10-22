@@ -10,7 +10,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.font.TextFieldHelper;
 import net.minecraft.client.gui.screens.inventory.AbstractSignEditScreen;
-import net.minecraft.client.input.KeyEvent;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -58,7 +57,7 @@ public final class MixinSignEditScreen implements ScreenController {
         @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/client/gui/font/TextFieldHelper;setCursorToEnd()V"),
         @At(value = "INVOKE", ordinal = 1, target = "Lnet/minecraft/client/gui/font/TextFieldHelper;setCursorToEnd()V")
     })
-    private void keyPressed(final KeyEvent event, final CallbackInfoReturnable<Boolean> cir) {
+    private void keyPressed(final int keyCode, final int scanCode, final int modifiers, final CallbackInfoReturnable<Boolean> cir) {
         this.caramelChat$wrapper.setOrigin();
     }
 
@@ -66,11 +65,11 @@ public final class MixinSignEditScreen implements ScreenController {
         method = "keyPressed",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/font/TextFieldHelper;keyPressed(Lnet/minecraft/client/input/KeyEvent;)Z"
+            target = "Lnet/minecraft/client/gui/font/TextFieldHelper;keyPressed(I)Z"
         )
     )
-    private boolean helperKeyPressed(final TextFieldHelper helper, final KeyEvent event) {
-        final boolean result = helper.keyPressed(event);
+    private boolean helperKeyPressed(final TextFieldHelper helper, final int keyCode) {
+        final boolean result = helper.keyPressed(keyCode);
         if (result) {
             this.caramelChat$wrapper.setToNoneStatus();
         }
@@ -98,17 +97,16 @@ public final class MixinSignEditScreen implements ScreenController {
         method = "renderSignText",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)V",
+            target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)I",
             ordinal = 0
         )
     )
-    private void renderCaret(final GuiGraphics instance, final Font font, final String text, final int x, final int y, final int color, final boolean dropShadow, final Operation<Integer> original) {
+    private int renderCaret(final GuiGraphics instance, final Font font, final String text, final int x, final int y, final int color, final boolean dropShadow, final Operation<Integer> original) {
         this.caramelChat$currentRenderLine++;
 
         // Check IME Status
         if (text.isEmpty() || caramelChat$wrapper.getStatus() == AbstractIMEWrapper.InputStatus.NONE) {
-            original.call(instance, font, text, x, y, color, dropShadow);
-            return;
+            return original.call(instance, font, text, x, y, color, dropShadow);
         }
 
         // Skip caret render
@@ -116,8 +114,7 @@ public final class MixinSignEditScreen implements ScreenController {
             this.caramelChat$currentRenderLine != this.line || // Line Check
             this.caramelChat$wrapper.getSecondStartPos() > text.length() // TODO What's wrong with this? (Fixes #34)
         ) {
-            original.call(instance, font, text, x, y, color, dropShadow);
-            return;
+            return original.call(instance, font, text, x, y, color, dropShadow);
         }
 
         // Render Caret
@@ -128,6 +125,6 @@ public final class MixinSignEditScreen implements ScreenController {
         final String input = text.substring(firstEndPos, secondStartPos);
         final String second = text.substring(secondStartPos);
         final String result = (first + ChatFormatting.UNDERLINE + input + ChatFormatting.RESET + second); // OMG..
-        original.call(instance, font, result, x, y, color, dropShadow);
+        return original.call(instance, font, result, x, y, color, dropShadow);
     }
 }

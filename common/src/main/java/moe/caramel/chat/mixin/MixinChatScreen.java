@@ -14,8 +14,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FontDescription.Resource;
-import net.minecraft.network.chat.HoverEvent.ShowText;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.Mth;
 import org.spongepowered.asm.mixin.Mixin;
@@ -37,8 +36,7 @@ public abstract class MixinChatScreen {
     @Unique private static final int TOOLTIP_TIME = 500;
     @Unique private static final int FADE_TIME = 250;
     @Unique private static final Component MARK_VERSION = translatable("caramelChat v%s", getProvider().getVersion())
-        .setStyle(Style.EMPTY.withHoverEvent(new ShowText(translatable("caramel.chat.redistribution_warn"))));
-    @Unique private static final Resource UNIFORM_RESOURCE = new Resource(UNIFORM_FONT);
+        .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, translatable("caramel.chat.redistribution_warn"))));
 
     @Unique private KeyboardStatus.Language caramelChat$lastLanguage;
     @Unique private long caramelChat$changeTime;
@@ -90,7 +88,7 @@ public abstract class MixinChatScreen {
 
         /* Calculate Position */
         final CommandSuggestions suggestions = this.commandSuggestions;
-        final Component display = Component.literal(status.display()).withStyle(style -> style.withFont(UNIFORM_RESOURCE));
+        final Component display = Component.literal(status.display()).withStyle(style -> style.withFont(UNIFORM_FONT));
 
         int borderStartX = 2;
         int borderEndX = (borderStartX + Mth.floor(screen.font.getSplitter().stringWidth(display) - status.offset()) + 4);

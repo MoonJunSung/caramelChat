@@ -24,7 +24,8 @@ public abstract class MixinPluginXaeroMapWayPoint {
     @Shadow(remap = false) private boolean ignoreEditBoxChanges;
     @Shadow(remap = false) protected abstract void postType(final GuiEventListener focused);
 
-    @Inject(method = "init", at = @At("TAIL"))
+    // Fabric (intermediary): method_25426, Forge/NeoForge (mojmap): init
+    @Inject(method = {"init", "method_25426"}, at = @At("TAIL"), remap = false)
     private void init(final CallbackInfo ci) {
         this.caramelChat$fixIme(this.nameTextField);
         this.caramelChat$fixIme(this.initialTextField);
