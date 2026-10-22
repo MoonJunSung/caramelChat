@@ -1,6 +1,8 @@
 <img src="common/src/main/resources/icon.png" width="96" alt="caramelChat Icon"/>
 
 # caramelChat
+**English** | [한국어](README.ko.md)
+
 Provides an enhanced IME input experience in Minecraft.
 
 ---
